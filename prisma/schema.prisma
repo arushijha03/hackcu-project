@@ -1,0 +1,120 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Student {
+  id            String         @id @default(cuid())
+  email         String         @unique
+  name          String         @default("")
+  createdAt     DateTime       @default(now())
+  parsedResumes ParsedResume[]
+  applications  Application[]
+}
+
+model Recruiter {
+  id         String   @id @default(cuid())
+  email      String   @unique
+  name       String   @default("")
+  department String   @default("")
+  createdAt  DateTime @default(now())
+  jobs       Job[]
+}
+
+model Job {
+  id                    String       @id @default(cuid())
+  recruiterId           String
+  recruiter             Recruiter    @relation(fields: [recruiterId], references: [id])
+  title                 String
+  department            String       @default("")
+  description           String
+  workStudyEligible     Boolean      @default(false)
+  hoursPerWeek          Int          @default(0)
+  payRange              String       @default("")
+  contactName           String       @default("")
+  contactEmail          String       @default("")
+  contactPhone          String       @default("")
+  additionalContactInfo String       @default("")
+  status                String       @default("open")
+  createdAt             DateTime     @default(now())
+  updatedAt             DateTime     @updatedAt
+  parsedJob             ParsedJob?
+  applications          Application[]
+}
+
+model ParsedResume {
+  id                  String   @id @default(cuid())
+  studentId           String
+  student             Student  @relation(fields: [studentId], references: [id])
+  rawText             String
+  skillsJson          String   @default("[]")
+  experienceJson      String   @default("[]")
+  educationJson       String   @default("[]")
+  availability        String   @default("")
+  eligibility         String   @default("")
+  atsReadabilityScore Float    @default(70)
+  createdAt           DateTime @default(now())
+}
+
+model ParsedJob {
+  id                          String   @id @default(cuid())
+  jobId                       String   @unique
+  job                         Job      @relation(fields: [jobId], references: [id])
+  requiredSkillsJson          String   @default("[]")
+  preferredSkillsJson         String   @default("[]")
+  requiredExperienceJson      String   @default("[]")
+  eligibilityRequirementsJson String   @default("[]")
+  availabilityRequirementsJson String  @default("[]")
+  createdAt                   DateTime @default(now())
+}
+
+model Application {
+  id                String             @id @default(cuid())
+  studentId         String
+  student           Student            @relation(fields: [studentId], references: [id])
+  jobId             String
+  job               Job                @relation(fields: [jobId], references: [id])
+  status            String             @default("pending")
+  trackerStatus     String             @default("applied")
+  recruiterNotes    String             @default("")
+  submittedAt       DateTime           @default(now())
+  lastUpdated       DateTime           @updatedAt
+  matchResult       MatchResult?
+  rejectionFeedback RejectionFeedback?
+
+  @@unique([studentId, jobId])
+}
+
+model MatchResult {
+  id                   String      @id @default(cuid())
+  applicationId        String      @unique
+  application          Application @relation(fields: [applicationId], references: [id])
+  overallScore         Float
+  eligibilityScore     Float
+  requiredSkillsScore  Float
+  experienceScore      Float
+  availabilityScore    Float
+  preferredSkillsScore Float
+  atsReadabilityScore  Float
+  strengthsJson        String      @default("[]")
+  gapsJson             String      @default("[]")
+  fitReasonsJson       String      @default("[]")
+  metHardFilters       Boolean
+  createdAt            DateTime    @default(now())
+}
+
+model RejectionFeedback {
+  id                       String      @id @default(cuid())
+  applicationId            String      @unique
+  application              Application @relation(fields: [applicationId], references: [id])
+  unmetRequirementsJson    String      @default("[]")
+  resumeGapsJson           String      @default("[]")
+  improvementSuggestionsJson String    @default("[]")
+  alternateJobIdsJson      String      @default("[]")
+  plainEnglishSummary      String      @default("")
+  createdAt                DateTime    @default(now())
+}
