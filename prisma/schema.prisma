@@ -61,6 +61,8 @@ model ParsedResume {
   availability        String   @default("")
   eligibility         String   @default("")
   atsReadabilityScore Float    @default(70)
+  resumeEmail         String   @default("")
+  graduationDate     String   @default("")
   createdAt           DateTime @default(now())
 }
 

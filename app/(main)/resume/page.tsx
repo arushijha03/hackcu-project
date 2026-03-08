@@ -7,7 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Upload, FileText, Briefcase, Calendar } from "lucide-react";
+import { Upload, FileText, Briefcase, Calendar, Mail, GraduationCap } from "lucide-react";
 
 type Experience = {
   title: string;
@@ -38,6 +38,8 @@ export default function ResumePage() {
     availability: string;
     eligibility: string;
     atsReadabilityScore: number;
+    resumeEmail: string;
+    graduationDate: string;
   } | null>(null);
 
   useEffect(() => {
@@ -167,6 +169,24 @@ export default function ResumePage() {
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
+              {parsedProfile.resumeEmail && (
+                <div>
+                  <h4 className="mb-1 text-sm font-semibold flex items-center gap-1.5">
+                    <Mail className="h-4 w-4 text-cu-gold" />
+                    Email (from resume)
+                  </h4>
+                  <p className="text-sm text-cu-dark-gray">{parsedProfile.resumeEmail}</p>
+                </div>
+              )}
+              {parsedProfile.graduationDate && (
+                <div>
+                  <h4 className="mb-1 text-sm font-semibold flex items-center gap-1.5">
+                    <GraduationCap className="h-4 w-4 text-cu-gold" />
+                    Graduation date
+                  </h4>
+                  <p className="text-sm text-cu-dark-gray">{parsedProfile.graduationDate}</p>
+                </div>
+              )}
               <div>
                 <h4 className="mb-1 text-sm font-semibold">Skills</h4>
                 <div className="flex flex-wrap gap-1.5">

@@ -48,9 +48,13 @@ export default async function ApplicationDetailPage({
   if (!application) notFound();
   if (application.studentId !== session.user.id) notFound();
 
-  const isScreenedIn = application.trackerStatus === "screened_in" || 
+  const isScreenedIn =
+    application.status === "screened_in" ||
+    application.trackerStatus === "screened_in" ||
     ["shortlisted", "contacted", "hired"].includes(application.trackerStatus);
-  const isScreenedOut = application.trackerStatus === "screened_out" || 
+  const isScreenedOut =
+    application.status === "screened_out" ||
+    application.trackerStatus === "screened_out" ||
     application.trackerStatus === "rejected";
 
   let alternateJobs: { id: string; title: string; department?: string | null }[] = [];

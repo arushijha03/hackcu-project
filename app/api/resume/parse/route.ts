@@ -65,6 +65,8 @@ export async function POST(req: Request) {
       availability,
       eligibility: parsed.eligibility ?? "",
       atsReadabilityScore: parsed.atsReadabilityScore,
+      resumeEmail: parsed.resumeEmail ?? "",
+      graduationDate: parsed.graduationDate ?? "",
     },
   });
 

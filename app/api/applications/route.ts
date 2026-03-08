@@ -4,6 +4,7 @@ import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/db";
 import { computeMatch } from "@/lib/ai/match-engine";
 import { generateRejectionSummary } from "@/lib/ai/explain-engine";
+import { sendRejectionEmail } from "@/lib/email";
 
 export async function GET(req: NextRequest) {
   const session = await getServerSession(authOptions);
@@ -25,7 +26,10 @@ export async function GET(req: NextRequest) {
       include: { student: true, matchResult: true },
       orderBy: { submittedAt: "desc" },
     });
-    const sorted = [...applications].sort(
+    const qualified = applications.filter(
+      (a) => a.matchResult && a.matchResult.overallScore >= 65
+    );
+    const sorted = [...qualified].sort(
       (a, b) => (b.matchResult?.overallScore ?? 0) - (a.matchResult?.overallScore ?? 0)
     );
     return NextResponse.json(sorted);
@@ -81,6 +85,8 @@ export async function POST(req: Request) {
     availability: resume.availability || null,
     eligibility: resume.eligibility || null,
     atsReadabilityScore: resume.atsReadabilityScore,
+    resumeEmail: resume.resumeEmail?.trim() || null,
+    graduationDate: resume.graduationDate?.trim() || null,
   };
 
   const pj = job.parsedJob;
@@ -97,14 +103,15 @@ export async function POST(req: Request) {
     hoursPerWeek: job.hoursPerWeek,
   });
 
-  const status = !match.metHardFilters || match.overallScore < 55 ? "screened_out" : "screened_in";
+  const status = !match.metHardFilters || match.overallScore < 65 ? "screened_out" : "screened_in";
+  const trackerStatus = status === "screened_out" ? "screened_out" : "applied";
 
   const application = await prisma.application.create({
     data: {
       studentId: session.user.id,
       jobId,
       status,
-      trackerStatus: "applied",
+      trackerStatus,
     },
   });
 
@@ -160,6 +167,9 @@ export async function POST(req: Request) {
         plainEnglishSummary: summary,
       },
     });
+
+    const baseUrl = process.env.NEXTAUTH_URL || "http://localhost:3001";
+    sendRejectionEmail("ardon.kotey371@gmail.com", job.title, summary, `${baseUrl}/applications/${application.id}`).catch(() => {});
   }
 
   const full = await prisma.application.findUnique({

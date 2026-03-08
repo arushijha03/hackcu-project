@@ -116,6 +116,23 @@ export default async function RecruiterApplicationPage({
           </CardContent>
         </Card>
       )}
+
+      {application.trackerStatus === "rejected" &&
+        application.rejectionFeedback?.plainEnglishSummary && (
+          <Card className="border-amber-200 bg-amber-50/50">
+            <CardHeader>
+              <CardTitle>Rejection feedback sent to applicant</CardTitle>
+              <p className="text-sm font-normal text-cu-dark-gray">
+                The applicant was notified by email with the following summary:
+              </p>
+            </CardHeader>
+            <CardContent>
+              <p className="whitespace-pre-wrap text-sm text-cu-black">
+                {application.rejectionFeedback.plainEnglishSummary}
+              </p>
+            </CardContent>
+          </Card>
+        )}
     </div>
   );
 }

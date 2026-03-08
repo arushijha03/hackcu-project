@@ -63,6 +63,8 @@ export default async function JobDetailPage({
           availability: latestResume.availability || null,
           eligibility: latestResume.eligibility || null,
           atsReadabilityScore: latestResume.atsReadabilityScore,
+          resumeEmail: latestResume.resumeEmail?.trim() || null,
+          graduationDate: latestResume.graduationDate?.trim() || null,
         };
         const parsedJobData: ParsedJobData = {
           requiredSkills: safeParseJson(job.parsedJob.requiredSkillsJson, []),

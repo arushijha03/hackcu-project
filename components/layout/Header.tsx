@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useSession, signOut } from "next-auth/react";
+import { useSession } from "next-auth/react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
@@ -73,12 +73,8 @@ export function Header() {
                   </Link>
                 </>
               )}
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => signOut()}
-              >
-                Sign out
+              <Button variant="ghost" size="sm" asChild>
+                <Link href="/signout">Sign out</Link>
               </Button>
             </>
           )}

@@ -16,6 +16,8 @@ export type ParsedResumeData = {
   availability: string | null;
   eligibility: string | null;
   atsReadabilityScore: number;
+  resumeEmail?: string | null;
+  graduationDate?: string | null;
 };
 
 const COMMON_SKILLS = [
@@ -64,9 +66,11 @@ export async function parseResumeText(text: string): Promise<ParsedResumeData> {
   "education": [{"degree": "...", "institution": "...", "year": "..."}],
   "availability": "hours per week or null",
   "eligibility": "work_study or federal_work_study or null",
-  "atsReadabilityScore": 0-100
+  "atsReadabilityScore": 0-100,
+  "resumeEmail": "email from resume or null",
+  "graduationDate": "e.g. May 2026 or 2025 or null"
 }
-Return only valid JSON, no markdown.`,
+Return only valid JSON, no markdown. Extract resumeEmail from contact info (email, e-mail, etc). Extract graduationDate from education (expected graduation, graduation year, etc).`,
           },
           { role: "user", content: text },
         ],
@@ -82,6 +86,8 @@ Return only valid JSON, no markdown.`,
           availability: parsed.availability ?? null,
           eligibility: parsed.eligibility ?? null,
           atsReadabilityScore: parsed.atsReadabilityScore ?? 70,
+          resumeEmail: parsed.resumeEmail ?? null,
+          graduationDate: parsed.graduationDate ?? null,
         };
       }
     } catch {
@@ -90,6 +96,9 @@ Return only valid JSON, no markdown.`,
   }
 
   const skills = extractSkillsFromText(text);
+  const emailMatch = text.match(/[\w.-]+@[\w.-]+\.\w+/);
+  const graduationMatch = text.match(/(?:graduation|grad|expected|class of)\s*[:]?\s*(\d{4}|(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)[a-z]*\s+\d{4})/i)
+    ?? text.match(/(\d{4})\s*(?:graduation|grad|expected|degree)/i);
   return {
     skills,
     experience: [],
@@ -97,5 +106,7 @@ Return only valid JSON, no markdown.`,
     availability: null,
     eligibility: null,
     atsReadabilityScore: 70,
+    resumeEmail: emailMatch ? emailMatch[0] : null,
+    graduationDate: graduationMatch ? graduationMatch[1] : null,
   };
 }
