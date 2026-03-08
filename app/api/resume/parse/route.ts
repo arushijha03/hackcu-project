@@ -3,6 +3,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/db";
 import { parseResumeText } from "@/lib/ai/resume-parser";
+import { extractTextFromPDF } from "@/lib/pdf";
 
 export async function POST(req: Request) {
   const session = await getServerSession(authOptions);
@@ -29,20 +30,30 @@ export async function POST(req: Request) {
   let text: string;
   try {
     const arrayBuffer = await file.arrayBuffer();
-    const decoder = new TextDecoder("utf-8", { fatal: false });
-    text = decoder.decode(arrayBuffer);
-    // If text is mostly garbage/binary, use placeholder
-    const printableRatio =
-      text.split("").filter((c) => c.charCodeAt(0) >= 32 && c.charCodeAt(0) < 127).length /
-      Math.max(text.length, 1);
-    if (text.length < 50 || printableRatio < 0.7) {
-      text = "Resume uploaded - parsing simulated for demo";
+    const buffer = Buffer.from(arrayBuffer);
+    text = await extractTextFromPDF(buffer);
+
+    if (text.length < 20) {
+      return NextResponse.json(
+        { error: "Could not extract text from PDF. Make sure it's not a scanned image." },
+        { status: 400 }
+      );
     }
-  } catch {
-    text = "Resume uploaded - parsing simulated for demo";
+  } catch (err) {
+    console.error("PDF parse error:", err);
+    return NextResponse.json(
+      { error: "Failed to read PDF file. Please try a different file." },
+      { status: 400 }
+    );
   }
 
+  const availabilityDate = formData.get("availabilityDate") as string | null;
+
   const parsed = await parseResumeText(text);
+
+  const availability = availabilityDate
+    ? `Available from ${availabilityDate}`
+    : parsed.availability ?? "";
 
   const parsedResume = await prisma.parsedResume.create({
     data: {
@@ -51,7 +62,7 @@ export async function POST(req: Request) {
       skillsJson: JSON.stringify(parsed.skills),
       experienceJson: JSON.stringify(parsed.experience),
       educationJson: JSON.stringify(parsed.education),
-      availability: parsed.availability ?? "",
+      availability,
       eligibility: parsed.eligibility ?? "",
       atsReadabilityScore: parsed.atsReadabilityScore,
     },

@@ -51,12 +51,13 @@ function extractSkillsFromText(text: string): string[] {
 
 export async function parseResumeText(text: string): Promise<ParsedResumeData> {
   if (openai) {
-    const response = await openai.chat.completions.create({
-      model: "gpt-4o-mini",
-      messages: [
-        {
-          role: "system",
-          content: `Parse the resume text into JSON with this exact structure:
+    try {
+      const response = await openai.chat.completions.create({
+        model: "gpt-4o-mini",
+        messages: [
+          {
+            role: "system",
+            content: `Parse the resume text into JSON with this exact structure:
 {
   "skills": ["skill1", "skill2"],
   "experience": [{"title": "...", "company": "...", "duration": "...", "bullets": ["..."]}],
@@ -66,14 +67,13 @@ export async function parseResumeText(text: string): Promise<ParsedResumeData> {
   "atsReadabilityScore": 0-100
 }
 Return only valid JSON, no markdown.`,
-        },
-        { role: "user", content: text },
-      ],
-      temperature: 0.2,
-    });
-    const content = response.choices[0]?.message?.content?.trim();
-    if (content) {
-      try {
+          },
+          { role: "user", content: text },
+        ],
+        temperature: 0.2,
+      });
+      const content = response.choices[0]?.message?.content?.trim();
+      if (content) {
         const parsed = JSON.parse(content.replace(/^```json\s*|\s*```$/g, ""));
         return {
           skills: parsed.skills ?? [],
@@ -83,9 +83,9 @@ Return only valid JSON, no markdown.`,
           eligibility: parsed.eligibility ?? null,
           atsReadabilityScore: parsed.atsReadabilityScore ?? 70,
         };
-      } catch {
-        // fall through to fallback
       }
+    } catch {
+      // OpenAI call failed — fall through to keyword fallback
     }
   }
 

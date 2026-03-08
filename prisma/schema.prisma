@@ -40,6 +40,10 @@ model Job {
   contactPhone          String       @default("")
   additionalContactInfo String       @default("")
   status                String       @default("open")
+  source                String       @default("manual")
+  postedAt              DateTime?
+  employerName          String       @default("")
+  jobUrl                String       @default("")
   createdAt             DateTime     @default(now())
   updatedAt             DateTime     @updatedAt
   parsedJob             ParsedJob?

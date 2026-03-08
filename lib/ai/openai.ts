@@ -1,9 +1,9 @@
 import OpenAI from "openai";
 
-export const openai =
-  process.env.OPENAI_API_KEY && process.env.OPENAI_API_KEY.length > 0
-    ? new OpenAI({ apiKey: process.env.OPENAI_API_KEY })
-    : null;
+const key = process.env.OPENAI_API_KEY ?? "";
+const isValidKey = key.length > 10 && !key.includes("...");
+
+export const openai = isValidKey ? new OpenAI({ apiKey: key }) : null;
 
 export function cosineSimilarity(a: number[], b: number[]): number {
   if (a.length !== b.length || a.length === 0) return 0;

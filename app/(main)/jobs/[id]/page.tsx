@@ -98,10 +98,15 @@ export default async function JobDetailPage({
                 <Briefcase className="h-6 w-6 text-cu-gold" />
                 {job.title}
               </CardTitle>
-              <p className="mt-1 text-cu-dark-gray">{job.department}</p>
+              {(job.employerName || job.department) && (
+                <p className="mt-1 font-medium text-cu-dark-gray">
+                  {job.employerName || job.department}
+                </p>
+              )}
               <p className="mt-1 text-sm text-cu-dark-gray">
-                {job.hoursPerWeek} hrs/week
-                {job.payRange && ` · ${job.payRange}`}
+                {job.hoursPerWeek > 0 && `${job.hoursPerWeek} hrs/week`}
+                {job.hoursPerWeek > 0 && job.payRange && " · "}
+                {job.payRange || ""}
               </p>
             </div>
             {session?.user?.role === "student" && (

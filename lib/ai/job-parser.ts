@@ -38,12 +38,13 @@ export async function parseJobDescription(
   description: string
 ): Promise<ParsedJobData> {
   if (openai) {
-    const response = await openai.chat.completions.create({
-      model: "gpt-4o-mini",
-      messages: [
-        {
-          role: "system",
-          content: `Parse the job description into JSON with this exact structure:
+    try {
+      const response = await openai.chat.completions.create({
+        model: "gpt-4o-mini",
+        messages: [
+          {
+            role: "system",
+            content: `Parse the job description into JSON with this exact structure:
 {
   "requiredSkills": ["skill1", "skill2"],
   "preferredSkills": ["skill1"],
@@ -52,14 +53,13 @@ export async function parseJobDescription(
   "availabilityRequirements": ["req1"]
 }
 Return only valid JSON, no markdown.`,
-        },
-        { role: "user", content: description },
-      ],
-      temperature: 0.2,
-    });
-    const content = response.choices[0]?.message?.content?.trim();
-    if (content) {
-      try {
+          },
+          { role: "user", content: description },
+        ],
+        temperature: 0.2,
+      });
+      const content = response.choices[0]?.message?.content?.trim();
+      if (content) {
         const parsed = JSON.parse(content.replace(/^```json\s*|\s*```$/g, ""));
         return {
           requiredSkills: parsed.requiredSkills ?? [],
@@ -68,9 +68,9 @@ Return only valid JSON, no markdown.`,
           eligibilityRequirements: parsed.eligibilityRequirements ?? [],
           availabilityRequirements: parsed.availabilityRequirements ?? [],
         };
-      } catch {
-        // fall through to fallback
       }
+    } catch {
+      // OpenAI call failed — fall through to keyword fallback
     }
   }
 

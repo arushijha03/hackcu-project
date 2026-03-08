@@ -9,22 +9,26 @@ export async function generateRejectionSummary(params: {
   improvementSuggestions: string[];
 }): Promise<string> {
   if (openai) {
-    const response = await openai.chat.completions.create({
-      model: "gpt-4o-mini",
-      messages: [
-        {
-          role: "system",
-          content: `Generate a brief, empathetic plain-English summary (2-4 sentences) for a student who was not selected for a job. Use the provided match data. Be constructive and encouraging.`,
-        },
-        {
-          role: "user",
-          content: JSON.stringify(params),
-        },
-      ],
-      temperature: 0.5,
-    });
-    const content = response.choices[0]?.message?.content?.trim();
-    if (content) return content;
+    try {
+      const response = await openai.chat.completions.create({
+        model: "gpt-4o-mini",
+        messages: [
+          {
+            role: "system",
+            content: `Generate a brief, empathetic plain-English summary (2-4 sentences) for a student who was not selected for a job. Use the provided match data. Be constructive and encouraging.`,
+          },
+          {
+            role: "user",
+            content: JSON.stringify(params),
+          },
+        ],
+        temperature: 0.5,
+      });
+      const content = response.choices[0]?.message?.content?.trim();
+      if (content) return content;
+    } catch {
+      // OpenAI call failed — fall through to template fallback
+    }
   }
 
   // Fallback plain-English summary
